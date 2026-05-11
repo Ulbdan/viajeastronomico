@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Un pequeño viaje astronómico</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 22px;
+      background: linear-gradient(135deg, #30144d, #8c4ea8, #ffc1de);
+      color: white;
+      overflow-x: hidden;
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1.5px);
+      background-size: 70px 70px, 120px 120px;
+      animation: twinkle 6s infinite alternate;
+    }
+
+    .game {
+      width: 100%;
+      max-width: 760px;
+      min-height: 620px;
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 32px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      padding: 28px;
+    }
+
+    .screen {
+      display: none;
+      min-height: 560px;
+      text-align: center;
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .small-title {
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      opacity: 0.86;
+      margin-bottom: 12px;
+    }
+
+    h1, h2 {
+      line-height: 1.15;
+      margin-bottom: 16px;
+      text-shadow: 0 4px 18px rgba(0,0,0,0.22);
+    }
+
+    h1 {
+      font-size: clamp(2rem, 6vw, 3.5rem);
+    }
+
+    h2 {
+      font-size: clamp(1.65rem, 5vw, 2.55rem);
+    }
+
+    p {
+      font-size: clamp(1rem, 2.8vw, 1.18rem);
+      line-height: 1.72;
+      max-width: 620px;
+      margin-bottom: 18px;
+    }
+
+    .photo-card {
+      width: min(100%, 520px);
+      margin: 12px auto 20px;
+      border-radius: 28px;
+      padding: 10px;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 16px 45px rgba(0,0,0,0.25);
+      transform: rotate(-1deg);
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 340px;
+      object-fit: contain;
+      border-radius: 22px;
+      display: block;
+    }
+
+    .date-badge {
+      display: inline-block;
+      margin: 0 0 18px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 14px 25px;
+      margin: 8px;
+      background: #fff;
+      color: #863e91;
+      font-weight: 800;
+      font-size: 0.98rem;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px) scale(1.02);
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.45);
+    }
+
+    .progress {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 8px;
+      width: 100%;
+      background: rgba(255,255,255,0.16);
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #fff, #ffd1ea, #ff8fc8);
+      transition: width 0.5s ease;
+    }
+
+    .final-card {
+      width: min(100%, 640px);
+      padding: 26px;
+      border-radius: 30px;
+      background: rgba(255,255,255,0.22);
+      border: 1px solid rgba(255,255,255,0.42);
+    }
+
+    .final-question {
+      font-size: clamp(1.35rem, 5vw, 2.2rem);
+      font-weight: 900;
+      margin-top: 10px;
+      margin-bottom: 18px;
+    }
+
+    .yes-message {
+      display: none;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.35);
+    }
+
+    .yes-message.active {
+      display: block;
+    }
+
+    .floating-heart {
+      position: fixed;
+      top: -30px;
+      z-index: 3;
+      pointer-events: none;
+      animation: fall linear forwards;
+      font-size: 24px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes twinkle {
+      from { opacity: 0.45; }
+      to { opacity: 0.95; }
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(115vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .photo-card img {
+        height: 280px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="stars"></div>
+
+<main class="game">
+
+  <section class="screen active" id="screen0">
+    <div class="small-title">Para mi estrellita</div>
+
+    <h1>Un pequeño viaje por nuestros recuerdos ✨</h1>
+
+    <p>
+      Preparé esto porque hay días que no deberían quedarse solo en la memoria.
+      Algunos merecen volver a sentirse, aunque sea por un ratito.
+    </p>
+
+    <button class="btn" onclick="nextScreen()">Empezar 💖</button>
+  </section>
+
+
+  <section class="screen" id="screen1">
+
+    <div class="small-title">Recuerdo 1</div>
+
+    <div class="photo-card">
+      <img src="10oct2024.jpeg" alt="El día que nos conocimos" />
+    </div>
+
+    <span class="date-badge">10 • Octubre • 2024 ✨</span>
+
+    <h2>El día que nos conocimos</h2>
+
+    <p>
+      Quién diría que una simple coincidencia terminaría convirtiéndose
+      en el inicio de algo tan bonito.
+    </p>
+
+    <p>
+	Nerd fact: Lo que ves en la imagen es el cometa Tsuchinshan, viajó por mucho tiempo y justo ese día pasó muy cerca del Sol, por eso su cola se ve tan brillante. De todas las trayectorias posibles en el Universo, el Sol y el cometa coincidieron, así como también tú y yo coincidimos ♾️.
+    </p>
+
+    <button class="btn" onclick="nextScreen()">Siguiente recuerdo ✨</button>
+  </section>
+
+
+  <section class="screen" id="screen2">
+
+    <div class="small-title">Recuerdo 2</div>
+
+    <div class="photo-card">
+      <img src="19sept2025.jpg" alt="Nuestro primer beso" />
+    </div>
+
+    <span class="date-badge">19 • Septiembre • 2025 💖</span>
+
+    <h2>Nuestro primer beso</h2>
+
+    <p>
+      Aunque fue solo un momento, todavía lo recuerdo como uno de los
+      días más felices de mi vida.
+    </p>
+
+    <p>
+      Nerd fact: Foto de la constelación Cygnus, lo que vemos es algo que pasó hace 6000 años, es como un pequeño viaje en el tiempo. Incluso el Universo necesitó miles de años para crear algo tan lindo como este momento 💘.
+    </p>
+
+    <button class="btn" onclick="nextScreen()">Siguiente recuerdo 💫</button>
+  </section>
+
+
+  <section class="screen" id="screen3">
+
+    <div class="small-title">Recuerdo 3</div>
+
+    <div class="photo-card">
+      <img src="15abr2026.jpeg" alt="Nuestra primera cita oficial" />
+    </div>
+
+    <span class="date-badge">15 • Abril • 2026 🌙</span>
+
+    <h2>Nuestra primera cita oficial</h2>
+
+    <p>
+      La pasamos excelente, y no sé qué fue mejor:
+      el lugar, las risas o simplemente compartir ese día contigo.
+    </p>
+
+    <p>
+      Nerd fact: La Luna se ve hermosa no? fue testigo de ese día tan lindo que pasamos, pero ves ese puntito arriba de la Luna? es la International Space Station, y justo está pasando entre la Tierra y la Luna, un fenómeno llamado "lunar transit" que dura menos de 1 segundo, una coincidencia muy precisa. Hay momentos que duran poco, pero se quedan para siempre ☄️💖.
+    </p>
+
+    <button class="btn" onclick="nextScreen()">Hay algo más importante 🌌</button>
+  </section>
+
+
+  <section class="screen" id="screen4">
+
+    <div class="small-title">La fecha más especial</div>
+
+    <div class="photo-card">
+      <img src="22may1996.jpeg" alt="El cosmos el día de tu cumpleaños" />
+    </div>
+
+    <span class="date-badge">22 • Mayo • 1996 💫</span>
+
+    <h2>El día en que nació alguien muy especial</h2>
+
+    <p>
+      Ese día nació la persona más hermosa que puede existir en esta vida.
+      Y sinceramente creo que el cosmos lo sabía…
+      porque incluso el cielo estaba igual de hermoso (y pinky como a ti te gusta 😅).
+    </p>
+
+    <p>
+      Nerd fact: Lo que ves es la Rosetta Nebula, una nebulosa enorme que está en la constelación Monoceros. Basicamente es una fábrica de estrellas, el Universo estaba creando estrellas nuevas, como si supiera que ese día iba a nacer la estrellita más bonita llamada Ñañelita 🌟.
+    </p>
+
+    <button class="btn" onclick="nextScreen()">Abrir invitación 💖</button>
+  </section>
+
+
+  <section class="screen" id="screen5">
+
+    <div class="final-card">
+
+      <div class="small-title">Sorpresa final</div>
+
+      <h2>Una fecha así no puede pasar desapercibida</h2>
+
+      <p>
+        De hecho, creo que merece empezar a celebrarse incluso un poquito antes.
+      </p>
+
+      <p>
+        Así que el <strong>jueves 21</strong>,
+        me gustaría que te vistas como me dijiste que te gusta vestirte, como toda una reina,
+        porque me gustaría llevarte a un lugar muy lindo.
+      </p>
+
+      <div class="final-question">
+        ¿Aceptas? 🥹✨
+      </div>
+
+      <button class="btn" onclick="acceptInvitation()">
+        Sí, acepto 💖
+      </button>
+
+      <button class="btn secondary" onclick="playfulNo()">
+        Necesito una pista 👀
+      </button>
+
+      <div class="yes-message" id="yesMessage">
+        Entonces queda oficialmente reservado este recuerdo nuevo para nosotros 💫
+        <br><br>
+        Pista: vas a verte preciosa, y el lugar va perfecto contigo.
+      </div>
+
+      <p style="opacity:0.75; font-size:0.9rem; margin-top:20px;">
+        Y ojalá este sea solo otro de muchos recuerdos más ✨
+      </p>
+
+    </div>
+  </section>
+
+
+  <div class="progress">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+</main>
+
+<script>
+
+let currentScreen = 0;
+const totalScreens = 5;
+
+function nextScreen() {
+
+  document.getElementById(`screen${currentScreen}`).classList.remove('active');
+
+  currentScreen++;
+
+  document.getElementById(`screen${currentScreen}`).classList.add('active');
+
+  updateProgress();
+
+  sprinkleHearts(10);
+}
+
+function updateProgress() {
+
+  const progress = (currentScreen / totalScreens) * 100;
+
+  document.getElementById('progressBar').style.width = progress + '%';
+}
+
+function acceptInvitation() {
+  const message = document.getElementById('yesMessage');
+
+  message.classList.add('active');
+
+  message.innerHTML =
+    'Entonces queda oficialmente reservado este recuerdo nuevo para nosotros 💫' +
+    '<br><br>' +
+    'Me encanta poder celebrarte este día tan especial como lo es tu cumpleaños 🥹💖';
+
+  sprinkleHearts(35);
+}
+function playfulNo() {
+
+  const message = document.getElementById('yesMessage');
+
+  message.classList.add('active');
+
+  message.innerHTML =
+    'Pista: es un lugar muy lindo, especial y perfecto para celebrar a mi estrellita ✨<br><br>Ahora sí… ¿aceptas? 🥹';
+
+  sprinkleHearts(18);
+}
+
+function sprinkleHearts(amount) {
+
+  const emojis = ['💖', '✨', '💕', '🌟', '💗', '🌙'];
+
+  for (let i = 0; i < amount; i++) {
+
+    const heart = document.createElement('div');
+
+    heart.className = 'floating-heart';
+
+    heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+    heart.style.left = Math.random() * 100 + 'vw';
+
+    heart.style.animationDuration = (3 + Math.random() * 3) + 's';
+
+    heart.style.fontSize = (18 + Math.random() * 18) + 'px';
+
+    document.body.appendChild(heart);
+
+    setTimeout(() => heart.remove(), 6500);
+  }
+}
+
+</script>
+
+</body>
+</html>
